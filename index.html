@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>CodeCommunity – Gemeinsam programmieren</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0b1220;--panel:#111c2e;--panel2:#17243a;--line:#263750;--text:#edf4ff;--muted:#9aabc3;--blue:#69a7ff;--green:#54d6a0;--red:#ff7272}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 15% 0%,#18345a 0,transparent 38%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+    .wrap{max-width:1050px;margin:auto;padding:28px 18px 50px}.top{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:28px}
+    .brand{display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#3988ff,#7c5cff);display:grid;place-items:center;font-size:23px;font-weight:800}
+    h1{font-size:clamp(23px,4vw,32px);margin:0;letter-spacing:-.7px}.sub{color:var(--muted);margin:2px 0 0}.status{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:7px 11px;white-space:nowrap}
+    .layout{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:18px}.panel{background:rgba(17,28,46,.94);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 16px 50px #0002}
+    .panelhead{padding:17px 19px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.panelhead h2{font-size:17px;margin:0}.hint{font-size:12px;color:var(--muted)}
+    .messages{height: min(58vh,590px);min-height:330px;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:13px}
+    .empty{margin:auto;text-align:center;color:var(--muted);max-width:300px}.empty b{display:block;color:var(--text);font-size:17px;margin-bottom:5px}
+    .msg{background:var(--panel2);border:1px solid #263a57;border-radius:14px;padding:12px 14px;overflow-wrap:anywhere}.msgmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px}.name{font-weight:700;color:#a9ceff}.time{font-size:11px;color:var(--muted)}.tag{font-size:10px;background:#243c5e;color:#b8d6ff;padding:2px 7px;border-radius:20px}.body{white-space:pre-wrap}
+    .composer{padding:15px 18px;border-top:1px solid var(--line);background:#0e1929}.fields{display:grid;grid-template-columns:170px 1fr;gap:9px;margin-bottom:9px}input,textarea{width:100%;border:1px solid #30445f;border-radius:11px;background:#0a1423;color:var(--text);padding:11px 12px;font:inherit;outline:none}input:focus,textarea:focus{border-color:var(--blue)}textarea{resize:vertical;min-height:78px;max-height:220px}.sendrow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:9px}
+    button{border:0;border-radius:11px;padding:10px 17px;background:linear-gradient(135deg,#3988ff,#695cff);color:white;font-weight:700;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.smallbtn{font-size:12px;padding:6px 9px;background:#26364e}.side{padding:18px}.side h3{font-size:15px;margin:0 0 9px}.side p,.side li{font-size:13px;color:var(--muted)}.side ul{padding-left:18px}.sidebox{padding:14px;background:#0d1929;border:1px solid var(--line);border-radius:13px;margin-bottom:14px}.online{color:var(--green)}.notice{font-size:12px;color:var(--muted);margin-top:12px}.error{color:var(--red);font-size:12px;min-height:18px}.footer{text-align:center;color:#70829c;font-size:12px;margin-top:22px}
+    @media(max-width:760px){.layout{grid-template-columns:1fr}.side{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sidebox{margin:0}.messages{height:55vh}.fields{grid-template-columns:1fr}.top{align-items:flex-start}.status{white-space:normal;text-align:center}}
+    @media(max-width:430px){.side{grid-template-columns:1fr}.wrap{padding:20px 12px 35px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><div class="logo">&lt;/&gt;</div><div><h1>CodeCommunity</h1><p class="sub">Fragen stellen. Wissen teilen. Zusammen coden.</p></div></div>
+    <div class="status" id="connection">● Verbindung wird hergestellt …</div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <div class="panelhead"><h2>💬 Community-Chat</h2><span class="hint">Live-Nachrichten</span></div>
+      <div class="messages" id="messages" aria-live="polite"><div class="empty"><b>Willkommen in der CodeCommunity!</b>Die neuesten Nachrichten werden hier angezeigt.</div></div>
+      <form class="composer" id="messageForm">
+        <div class="fields">
+          <input id="username" maxlength="24" placeholder="Dein Benutzername" autocomplete="nickname" required>
+          <input id="topic" maxlength="30" placeholder="Thema (z. B. JavaScript, Python)">
+        </div>
+        <textarea id="message" maxlength="1000" placeholder="Schreibe eine Nachricht … (max. 1000 Zeichen)" required></textarea>
+        <div class="sendrow"><span class="hint" id="counter">0 / 1000</span><button id="send" type="submit" disabled>Nachricht senden ↗</button></div>
+        <div class="error" id="error" role="status"></div>
+      </form>
+    </section>
+
+    <aside class="panel side">
+      <div class="sidebox"><h3>🌐 Ein Ort für Entwickler</h3><p>Tausche dich über Programmierung aus, stelle Fragen und hilf anderen bei ihren Projekten.</p></div>
+      <div class="sidebox"><h3><span class="online">●</span> Live-Chat</h3><p>Neue Beiträge erscheinen automatisch bei allen Besuchern, sobald die Firebase-Verbindung eingerichtet ist.</p></div>
+      <div class="sidebox"><h3>📌 Community-Regeln</h3><ul><li>Bleib freundlich und respektvoll.</li><li>Keine persönlichen Daten posten.</li><li>Kein Spam oder Beleidigungen.</li><li>Teile keinen geheimen API-Key oder Passwörter.</li></ul></div>
+      <div class="sidebox"><h3>🛠️ Themen</h3><p>HTML &amp; CSS · JavaScript · Python · Java · C# · Roblox Luau · Minecraft-Plugins · Godot</p></div>
+    </aside>
+  </main>
+  <p class="footer">CodeCommunity · Von der Community für die Community</p>
+</div>
+
+<!-- Firebase-Projekt konfigurieren: siehe Anleitung unterhalb dieser Datei. -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+  import { getDatabase, ref, push, onChildAdded, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+
+  // ERSETZE diese Beispielwerte durch die Konfiguration deines Firebase-Webprojekts.
+  const firebaseConfig = {
+    apiKey: "DEIN_API_KEY",
+    authDomain: "DEIN-PROJEKT.firebaseapp.com",
+    databaseURL: "https://DEIN-PROJEKT-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "DEIN-PROJEKT",
+    appId: "DEINE_APP_ID"
+  };
+
+  const $ = id => document.getElementById(id);
+  const messagesEl = $("messages"), form = $("messageForm"), send = $("send");
+  const messageInput = $("message"), counter = $("counter");
+  let database, ready = false, lastSentAt = 0;
+
+  function setStatus(text, good=false) {
+    $("connection").textContent = (good ? "● " : "○ ") + text;
+    $("connection").style.color = good ? "var(--green)" : "var(--muted)";
+  }
+  function showError(text) { $("error").textContent = text; }
+
+  function addMessage(data) {
+    const empty = messagesEl.querySelector(".empty");
+    if (empty) empty.remove();
+    const item = document.createElement("article");
+    item.className = "msg";
+    const meta = document.createElement("div"); meta.className = "msgmeta";
+    const name = document.createElement("span"); name.className = "name"; name.textContent = data.username || "Gast";
+    const topic = document.createElement("span"); topic.className = "tag"; topic.textContent = data.topic || "Allgemein";
+    const time = document.createElement("span"); time.className = "time";
+    time.textContent = data.createdAt ? new Date(data.createdAt).toLocaleString("de-DE") : "gerade eben";
+    const body = document.createElement("div"); body.className = "body"; body.textContent = data.text || "";
+    meta.append(name, topic, time); item.append(meta, body); messagesEl.append(item);
+    while (messagesEl.children.length > 100) messagesEl.firstElementChild.remove();
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  messageInput.addEventListener("input", () => counter.textContent = `${messageInput.value.length} / 1000`);
+
+  async function start() {
+    if (firebaseConfig.apiKey === "DEIN_API_KEY" || firebaseConfig.databaseURL.includes("DEIN-PROJEKT")) {
+      setStatus("Firebase noch nicht eingerichtet");
+      showError("Bitte trage zuerst deine Firebase-Konfiguration in index.html ein. Die Einrichtung steht in der Anleitung.");
+      return;
+    }
+    try {
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      database = getDatabase(app);
+      await signInAnonymously(auth);
+      ready = true; send.disabled = false; setStatus("Live verbunden", true);
+      const recent = query(ref(database, "messages"), limitToLast(100));
+      onChildAdded(recent, snapshot => addMessage(snapshot.val() || {}), err => showError("Chat konnte nicht geladen werden: " + err.message));
+    } catch (err) {
+      setStatus("Verbindung fehlgeschlagen");
+      showError("Firebase-Fehler: " + err.message);
+    }
+  }
+
+  form.addEventListener("submit", async event => {
+    event.preventDefault(); showError("");
+    if (!ready) return showError("Der Chat ist noch nicht verbunden.");
+    const username = $("username").value.trim();
+    const text = messageInput.value.trim();
+    const topic = $("topic").value.trim().slice(0,30) || "Allgemein";
+    if (!username || !text) return showError("Bitte Benutzername und Nachricht eingeben.");
+    if (Date.now() - lastSentAt < 3000) return showError("Bitte warte kurz, bevor du die nächste Nachricht sendest.");
+    send.disabled = true;
+    try {
+      await push(ref(database, "messages"), {
+        username: username.slice(0,24), topic, text: text.slice(0,1000), createdAt: serverTimestamp()
+      });
+      lastSentAt = Date.now(); messageInput.value = ""; counter.textContent = "0 / 1000";
+    } catch (err) { showError("Senden fehlgeschlagen: " + err.message); }
+    finally { send.disabled = false; }
+  });
+
+  start();
+</script>
+</body>
+</html>
